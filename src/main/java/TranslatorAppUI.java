@@ -1,3 +1,5 @@
+import com.google.cloud.translate.Translate;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -7,7 +9,7 @@ public class TranslatorAppUI extends JFrame {
     private JButton scanButton;
     private JButton stopButton;
     private JButton translateButton;
-    private JRadioButton autoDetectRadioButton;
+    private JComboBox translationLanguageCb;
     private JTextField integerField;
     private JTextArea translateTextField;
     private JScrollPane translateTextFieldScroll;
@@ -34,7 +36,7 @@ public class TranslatorAppUI extends JFrame {
         scanButton = new JButton("SCAN");
         stopButton = new JButton("STOP");
         translateButton = new JButton("TRANSLATE");
-        autoDetectRadioButton = new JRadioButton("Auto Detect");
+        translationLanguageCb = new JComboBox();
         integerField = new JTextField();
 
         int gridX = 0;
@@ -76,10 +78,18 @@ public class TranslatorAppUI extends JFrame {
         gbc.weightx = 1;
         gbc.insets = new Insets(5,5,5,5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        mainPanel.add(autoDetectRadioButton, gbc);
+        mainPanel.add(new JLabel("Translate To:"), gbc);
 
         gridX++;
         gbc = new GridBagConstraints();
+
+        gbc.gridx = gridX;
+        gbc.gridy = gridY;
+        gbc.weightx = 1;
+        gbc.insets = new Insets(5,5,5,5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainPanel.add(translationLanguageCb, gbc);
+
 
         gridY++;
         gridX=0;
@@ -125,6 +135,7 @@ public class TranslatorAppUI extends JFrame {
         gbc.insets = new Insets(20,20,20,20);
         gbc.fill = GridBagConstraints.BOTH;
         setTranslateTextField(gbc);
+        setTranslateLangCb();
 
         addButtonListeners();
 
@@ -145,9 +156,6 @@ public class TranslatorAppUI extends JFrame {
         int x = screenWidth - windowWidth;
         int y = (screenHeight - windowHeight) / 2;
         setPreferredSize(new Dimension(600, 400));
-        //setMaximizedBounds(new Rectangle(1200, 800));
-        //setMinimumSize(new Dimension(600,400));
-        //setMaximumSize(new Dimension(1200, 800));
         setResizable(false);
         setLocation(x,y);
     }
@@ -158,8 +166,30 @@ public class TranslatorAppUI extends JFrame {
         translateTextFieldScroll = new JScrollPane(translateTextField);
         translateTextField.setLineWrap(true);
         translateTextField.setWrapStyleWord(true);
+        translateTextField.setEditable(false);
         mainPanel.add(translateTextFieldScroll, gbc);
     }
+
+    private void setTranslateLangCb()
+    {
+        DefaultComboBoxModel<String> comboBoxModel = new DefaultComboBoxModel<>();
+        for(String lang : LanguageOptionsManager.getAllSupportedLanguage())
+        {
+            comboBoxModel.addElement(lang);
+        }
+        translationLanguageCb.setModel(comboBoxModel);
+        translationLanguageCb.setSelectedItem(0);
+        translationLanguageCb.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    langToTranslate = LanguageOptionsManager.getAbbreviatedLanguage(((JComboBox) e.getSource()).
+                            getSelectedItem().toString());
+                }
+            }
+        });
+    }
+
 
     private void addButtonListeners()
     {
@@ -246,7 +276,6 @@ public class TranslatorAppUI extends JFrame {
         scanButton.setEnabled(false);
         stopButton.setEnabled(true);
         translateButton.setEnabled(true);
-        //setCursor(Cursor.getDefaultCursor());
         mouseScanListener = null;
     }
 
